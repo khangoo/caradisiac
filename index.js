@@ -6,14 +6,23 @@ var elasticsearch = require('elasticsearch');
 const express = require('express');
 const app = express();
 
-async function getBrand(){
-  const brands = await getBrands();
-  return brands;
-}
+var client = new elasticsearch.Client({
+    host: 'localhost:9200',
+    log: 'trace'
+});
 
-async function getModel(string){
-  const models = await getModels(string);
-  return models;
+async function getAllModels() {
+    var all_models = [];
+    const brands = await getBrands();
+
+    for (var i = 0; i < brands.length; i++ ) {
+        console.log("GETTING MODEL : " + i);
+        var models = await getModels(brands[i]);
+        models.forEach(function(model) {
+            all_models.push(model);
+        });
+    }
+    return all_models;
 }
 
 let brands = getBrand();
@@ -40,11 +49,6 @@ app.get('/populate',function(req,res){
 
   var file = "./caradisiac.json";
   var caradisiac = jsonfile.readFileSync(file);
-
-  var client = new elasticsearch.Client({
-      host: 'localhost:9200',
-      log: 'trace'
-  });
 
   var body = [];
   for (var i = 0; i < caradisiac.length; i++ ) {
